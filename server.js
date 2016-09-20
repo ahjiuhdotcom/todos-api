@@ -1,5 +1,6 @@
 var express = require("express");
 var bodyParser = require("body-parser");
+var _ = require("underscore");
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
@@ -33,32 +34,46 @@ app.get("/todos", function(req, res){
 
 // GET "/todos/:id"
 app.get("/todos/:id", function(req, res){
-	var todoId =  req.params.id;
+	var todoId =  parseInt(req.params.id, 10);
+	var matchedTodo = _.findWhere(todos, {id: todoId});
 
-	for (var i=0; i<todos.length; i++) {
-		var todo = todos[i];
-		if (todo.id == todoId) {
-			// if using (todo.id === todoId), need to change todoId to js number (todo.id is number)
-			// using parseInt(re.params.id, 10) (most of the time using 10, type of number format)
-			return res.json(todos[i]);
-		} 
+	if (matchedTodo) {
+		console.log("2")
+		res.json(matchedTodo);
+	} else {
+		res.status(404).send();
 	}
-	res.status(404).send();
+
+	// for (var i=0; i<todos.length; i++) {
+	// 	var todo = todos[i];
+	// 	if (todo.id == todoId) {
+	// 		// if using (todo.id === todoId), need to change todoId to js number (todo.id is number)
+	// 		// using parseInt(re.params.id, 10) (most of the time using 10, type of number format)
+	// 		return res.json(todos[i]);
+	// 	} 
+	// }
+	// res.status(404).send();
 });
 
 // POST "/todos"
 // "body-parser" start required here
 app.post("/todos", function(req, res){
-	var body = req.body;
+	// the first argument is the array we want to pick
+	// second element is the field we want to pick/maintain, others will be removed/cleaned
+	var body = _.pick(req.body, "description", "completed");
+
+	if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+		return res.status(400).send();
+	}
+
+	body.description = body.description.trim();
 	body.id = todoNextId;
 	todoNextId++;
 
 	todos.push(body);
-	
 	res.json(body);
 
 });
-
 
 app.listen(PORT, function(){
 	console.log("Express listening on port: " + PORT);
