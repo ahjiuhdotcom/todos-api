@@ -28,14 +28,24 @@ app.get("/", function(req, res){
 
 // GET "/todos"
 app.get("/todos", function(req, res){
+
+
+	// Filtering using "?xxx=zzz"
 	var queryParams = req.query;
 	var filteredTodos = todos;
-
 	// "where" can return a array of matching item
 	if (queryParams.hasOwnProperty("completed") && queryParams.completed === "true") {
 		filteredTodos = _.where(filteredTodos, {completed: true});
 	} else if (queryParams.hasOwnProperty("completed") && queryParams.completed === "false") {
 		filteredTodos = _.where(filteredTodos, {completed: false});
+	}
+
+	if (queryParams.hasOwnProperty("q") && queryParams.q.length > 0){
+		filteredTodos = _.filter(filteredTodos, function(todo){
+			console.log("todo: " + todo);
+			console.log("todo.description: " + todo.description);
+			return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+		});
 	}
 
 	// this get request will return array of todos in json format
