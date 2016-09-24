@@ -56,15 +56,6 @@ app.get("/todos", function(req, res){
 // GET "/todos/:id"
 app.get("/todos/:id", function(req, res){
 	var todoId =  parseInt(req.params.id, 10);
-	// "findWhere" only return one and first item
-	var matchedTodo = _.findWhere(todos, {id: todoId});
-
-	if (matchedTodo) {
-		console.log("2")
-		res.json(matchedTodo);
-	} else {
-		res.status(404).send();
-	}
 
 	// for (var i=0; i<todos.length; i++) {
 	// 	var todo = todos[i];
@@ -75,6 +66,31 @@ app.get("/todos/:id", function(req, res){
 	// 	} 
 	// }
 	// res.status(404).send();
+
+	// // "findWhere" only return one and first item
+	// var matchedTodo = _.findWhere(todos, {id: todoId});
+
+	// if (matchedTodo) {
+	// 	res.json(matchedTodo);
+	// } else {
+	// 	res.status(404).send();
+	// }
+
+	db.todo.findById(todoId).then(function(todo){
+		// "!!" means taking a value that is not booolean
+		// convert it to truthly version
+		// e.g. "todo" is either object or Null
+		// if "todo" is object, "!!todo" return true, else return false
+		// similar check "if let" as of swift
+		if (!!todo) {
+			res.json(todo.toJSON());
+		} else {
+			res.status(404).send();
+		}
+	}).catch(function(e){
+		// "500" is server error
+		res.status(500).send();
+	});
 });
 
 // POST "/todos"
