@@ -1,6 +1,8 @@
 var express = require("express");
 var bodyParser = require("body-parser");
 var _ = require("underscore");
+var db = require("./db.js");
+
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
@@ -82,16 +84,26 @@ app.post("/todos", function(req, res){
 	// second element is the field we want to pick/maintain, others will be removed/cleaned
 	var body = _.pick(req.body, "description", "completed");
 
-	if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-		return res.status(400).send();
-	}
+	// if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+	// 	return res.status(400).send();
+	// }
 
-	body.description = body.description.trim();
-	body.id = todoNextId;
-	todoNextId++;
+	// body.description = body.description.trim();
+	// body.id = todoNextId;
+	// todoNextId++;
 
-	todos.push(body);
-	res.json(body);
+	// todos.push(body);
+	// res.json(body);
+
+	// Method "db.todo" is part of "module.exports = db"
+	db.todo.create(body).then(function(todo){
+		console.log("New todo created");
+		// object "todo" is not simple json object (it is sql object), 
+		// it contain other sql related info
+		res.json(todo.toJSON());
+	}).catch(function(e){
+		res.status(400).json(e);
+	});
 });
 
 // DELETE "/todos/:id"
@@ -134,6 +146,11 @@ app.put("/todos/:id", function(req, res){
 	res.json(matchedTodo);
 });
 
-app.listen(PORT, function(){
-	console.log("Express listening on port: " + PORT);
+// Sync the database to server
+// Method "db.sequelize" is part of "module.exports = db"
+db.sequelize.sync().then(function(){
+	app.listen(PORT, function(){
+		console.log("Express listening on port: " + PORT);
+	});
 });
+
