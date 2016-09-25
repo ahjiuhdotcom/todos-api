@@ -146,7 +146,13 @@ app.post("/todos", middleware.requireAuthentication, function(req, res){
 		console.log("New todo created");
 		// object "todo" is not simple json object (it is sql object), 
 		// it contain other sql related info
-		res.json(todo.toJSON());
+		// res.json(todo.toJSON());
+
+		req.user.addTodo(todo).then(function(){
+			return todo.reload();
+		}).then(function(todo){
+			res.json(todo.toJSON());
+		});
 	}).catch(function(e){
 		res.status(400).json(e);
 	});
@@ -262,7 +268,9 @@ app.post("/users/login", function(req, res){
 
 // Sync the database to server
 // Method "db.sequelize" is part of "module.exports = db"
-db.sequelize.sync({force: true}).then(function(){
+db.sequelize.sync({
+	force: true
+}).then(function(){
 	app.listen(PORT, function(){
 		console.log("Express listening on port: " + PORT);
 	});
