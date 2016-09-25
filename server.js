@@ -55,7 +55,9 @@ app.get("/todos", middleware.requireAuthentication, function(req, res){
 	// res.json(filteredTodos);
 
 	var query = req.query;
-	var where = {};
+	var where = {
+		userId: req.user.get("id")
+	};
 
 	if (query.hasOwnProperty("completed") && query.completed === "true"){
 		where.completed = true;			
@@ -106,7 +108,12 @@ app.get("/todos/:id", middleware.requireAuthentication, function(req, res){
 	// 	res.status(404).send();
 	// }
 
-	db.todo.findById(todoId).then(function(todo){
+	db.todo.findOne({
+		where: {
+			id: todoId,
+			userId: req.user.get("id")
+		}
+	}).then(function(todo){
 		// "!!" means taking a value that is not booolean
 		// convert it to truthly version
 		// e.g. "todo" is either object or Null
@@ -162,7 +169,7 @@ app.post("/todos", middleware.requireAuthentication, function(req, res){
 app.delete("/todos/:id", middleware.requireAuthentication, function(req, res){
 
 	var todoId = parseInt(req.params.id, 10);
-
+	console.log("Start deleting")
 	// var matchedTodo = _.findWhere(todos, {id: todoId});
 
 	// if (!matchedTodo){
@@ -174,8 +181,10 @@ app.delete("/todos/:id", middleware.requireAuthentication, function(req, res){
 
 	db.todo.destroy({
 		where: {
-			id: todoId
+			id: todoId,
+			userId: req.user.get("id")
 		}
+
 	}).then(function(rowDeleted){
 		if (rowDeleted == 0) {
 			res.status(404).json({
@@ -224,7 +233,12 @@ app.put("/todos/:id", middleware.requireAuthentication, function(req, res){
 		attributes.description = body.description;
 	}
 
-	db.todo.findById(todoId).then(function(todo){
+	db.todo.findOne({
+			where: {
+				id: todoId,
+				userId: req.user.get("id")
+			}
+		}).then(function(todo){
 		if(todo) {
 			return todo.update(attributes).then(function(todo){
 						res.json(todo.toJSON());
