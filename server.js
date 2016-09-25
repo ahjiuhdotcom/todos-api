@@ -3,11 +3,13 @@ var bodyParser = require("body-parser");
 var _ = require("underscore");
 var db = require("./db.js");
 var bcrypt = require("bcrypt");
+var middleware = require("./middleware.js")(db);
 
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
 var todoNextId = 1;
+
 
 app.use(bodyParser.json());
 
@@ -30,7 +32,7 @@ app.get("/", function(req, res){
 });
 
 // GET "/todos"
-app.get("/todos", function(req, res){
+app.get("/todos", middleware.requireAuthentication, function(req, res){
 
 	// // Filtering using "?xxx=zzz"
 	// var queryParams = req.query;
@@ -82,7 +84,7 @@ app.get("/todos", function(req, res){
 });
 
 // GET "/todos/:id"
-app.get("/todos/:id", function(req, res){
+app.get("/todos/:id", middleware.requireAuthentication, function(req, res){
 	var todoId =  parseInt(req.params.id, 10);
 
 	// for (var i=0; i<todos.length; i++) {
@@ -123,7 +125,7 @@ app.get("/todos/:id", function(req, res){
 
 // POST "/todos"
 // "body-parser" start required here
-app.post("/todos", function(req, res){
+app.post("/todos", middleware.requireAuthentication, function(req, res){
 	// the first argument is the array we want to pick
 	// second element is the field we want to pick/maintain, others will be removed/cleaned
 	var body = _.pick(req.body, "description", "completed");
@@ -151,7 +153,7 @@ app.post("/todos", function(req, res){
 });
 
 // DELETE "/todos/:id"
-app.delete("/todos/:id", function(req, res){
+app.delete("/todos/:id", middleware.requireAuthentication, function(req, res){
 
 	var todoId = parseInt(req.params.id, 10);
 
@@ -184,7 +186,7 @@ app.delete("/todos/:id", function(req, res){
 });
 
 // PUT "/todos/:id"
-app.put("/todos/:id", function(req, res){
+app.put("/todos/:id", middleware.requireAuthentication, function(req, res){
 	var todoId = parseInt(req.params.id, 10);
 	var body = _.pick(req.body, "description", "completed");
 	var attributes = {};
@@ -255,8 +257,7 @@ app.post("/users/login", function(req, res){
 		}
 	}, function(){
 		res.status(401).send();
-	});
-
+	});3
 });
 
 // Sync the database to server
